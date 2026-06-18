@@ -6,18 +6,16 @@
 Security integration in development and operations workflows.
 
 Part of [Train Station](https://github.com/jon-the-dev/saas-train-station), a tiered
-learning platform. This repo holds the **free** lessons for this track. **6 additional
-premium lessons** — AWS Security Hub Workshop, Checkov policy-as-code, OWASP ZAP,
-SLSA supply-chain security, and more — are available in the Train Station app.
+learning platform. This repo holds the **free** lessons for this track. **6 additional premium lessons** — AWS Security Hub Workshop, Checkov - Policy-as-Code for IaC, DevSecOps Reference Architecture (DoD), NIST DevSecOps Practices Guide (SP 800-204C), and more — are available in the Train Station app.
 
 ## Lessons
 
 | # | Lesson | Type | Level | Source |
 |---|--------|------|-------|--------|
-| 1 | [GitGuardian – Secrets Detection](lesson-01-gitguardian-secrets-detection/) | Repo | Beginner | [GitHub](https://github.com/GitGuardian/ggshield) |
-| 2 | [Snyk Learn – Security Education](lesson-02-snyk-learn-security-education/) | Lab | Beginner | [Snyk](https://learn.snyk.io/) |
-| 3 | [Trivy – Container Vulnerability Scanner](lesson-03-trivy-container-vulnerability-scanner/) | Repo | Beginner | [GitHub](https://github.com/aquasecurity/trivy) |
-| 4 | [OWASP DevSecOps Guidelines](lesson-04-owasp-devsecops-guidelines/) | Whitepaper | Intermediate | [OWASP](https://owasp.org/www-project-devsecops-guideline/) |
+| 1 | [GitGuardian - Secrets Detection](lesson-01-gitguardian-secrets-detection/) | Repo | Beginner | [GitHub](https://github.com/GitGuardian/ggshield) |
+| 2 | [OWASP DevSecOps Guidelines](lesson-02-owasp-devsecops-guidelines/) | Whitepaper | Intermediate | [OWASP](https://owasp.org/www-project-devsecops-guideline/) |
+| 3 | [Snyk Learn - Security Education](lesson-03-snyk-learn-security-education/) | Lab | Beginner | [Snyk](https://learn.snyk.io/) |
+| 4 | [Trivy - Container Vulnerability Scanner](lesson-04-trivy-container-vulnerability-scanner/) | Repo | Beginner | [GitHub](https://github.com/aquasecurity/trivy) |
 
 Each lesson is a self-contained guide (overview, prerequisites, key takeaways, and a
 step-by-step walkthrough). Open a lesson directory to read its `README.md`.
