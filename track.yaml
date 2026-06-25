@@ -6,6 +6,12 @@ color: red
 tier: free
 lessons:
   - { order: 1, dir: lesson-01-gitguardian-secrets-detection, tier: free }
-  - { order: 2, dir: lesson-02-owasp-devsecops-guidelines, tier: free }
-  - { order: 3, dir: lesson-03-snyk-learn-security-education, tier: free }
-  - { order: 4, dir: lesson-04-trivy-container-vulnerability-scanner, tier: free }
+  - { order: 2, dir: lesson-02-snyk-learn-security-education, tier: free }
+  - { order: 3, dir: lesson-03-trivy-container-vulnerability-scanner, tier: free }
+  - { order: 4, dir: lesson-04-owasp-devsecops-guidelines, tier: free }
+  - { order: 5, dir: lesson-05-checkov-policy-as-code, tier: premium }
+  - { order: 6, dir: lesson-06-owasp-zap-dynamic-testing, tier: premium }
+  - { order: 7, dir: lesson-07-semgrep-static-analysis, tier: premium }
+  - { order: 8, dir: lesson-08-slsa-supply-chain-security, tier: premium }
+  - { order: 9, dir: lesson-09-aws-security-hub-cspm, tier: premium }
+  - { order: 10, dir: lesson-10-devsecops-pipeline-capstone, tier: premium }
