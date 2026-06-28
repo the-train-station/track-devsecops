@@ -85,6 +85,18 @@ Once a lesson makes the concept clear, reinforce it with a tool or workflow chan
 
 This pairing helps learners move from awareness to real DevSecOps practice.
 
+## Deliverable
+
+Create a **finding-to-learning remediation worksheet** for one vulnerability class. Use a real or sample scanner finding and capture:
+
+- Finding summary: affected package, endpoint, code path, or configuration
+- Vulnerability class: map it to OWASP Top 10, CWE, or the closest Snyk Learn lesson
+- Risk explanation: write two sentences explaining how the issue could be exploited in this app
+- Fix pattern: note the secure coding or dependency-management action that resolves it
+- Team update: add one review checklist item, test idea, or backlog task that prevents recurrence
+
+Validation: compare the worksheet to the original finding and confirm it answers `what is wrong`, `why it matters`, `how to fix it`, and `how we avoid repeating it`. The expected output is a short remediation note that a developer could attach to a pull request or ticket without additional security translation.
+
 ## Practice Notes
 
 - Run hands-on work in a sandbox and keep a short lab log with commands, screenshots or outputs, resources created, cleanup steps, and the one pattern you would reuse in production.

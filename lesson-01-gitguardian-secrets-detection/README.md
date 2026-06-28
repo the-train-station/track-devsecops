@@ -58,6 +58,8 @@ Set up `ggshield` in a sandbox repository first, not your most sensitive product
 
 If you want to test detection deliberately, use clearly fake sample secrets in a disposable repo and remove them immediately afterward.
 
+Expected result: a clean sandbox reports no incidents, while a disposable fake-secret test reports a finding with the detector type, file path, line number, and remediation guidance. Do not use live credentials for this test.
+
 ### Step 3: Add Commit-Level Protection
 
 Once the local scan makes sense, move to the most valuable beginner use case: checking work before it leaves a developer workstation. Use the repository guidance to configure `ggshield` for commit or pre-commit style scanning. This is the stage where the tool becomes part of normal engineering behavior.
@@ -103,6 +105,18 @@ Once you are comfortable with the tool, write down a small standard for future p
 - What the expected remediation steps are after a confirmed leak
 
 That short operating guide is what turns a useful repository into a repeatable DevSecOps practice.
+
+## Deliverable
+
+Create a one-page **secret exposure response checklist** for a small engineering team. Include:
+
+- Detection source: local scan, pull request check, CI job, hosting provider alert, or third-party notice
+- Immediate containment: stop deployment, revoke or rotate the credential, and remove the secret from active configuration
+- Impact review: identify repo, branch, commit, logs, build artifacts, deployed environments, and any external access that may have used the secret
+- Cleanup: remove the secret from code, purge generated artifacts where possible, and replace it with a secret manager or environment variable
+- Prevention: add or tune a pre-commit scan, CI scan, ignore rule review, and owner for follow-up
+
+Validation: run the scan again after cleanup and capture the final summary. The expected output is either `no secrets have been found` or an equivalent zero-finding summary for the cleaned sandbox. If the tool still reports a finding, document the file path, why it remains, and who approved the exception.
 
 ## Practice Notes
 
