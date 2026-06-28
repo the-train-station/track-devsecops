@@ -13,9 +13,9 @@ learning platform. This repo holds the **free** lessons for this track. **6 addi
 | # | Lesson | Type | Level | Source |
 |---|--------|------|-------|--------|
 | 1 | [GitGuardian - Secrets Detection](lesson-01-gitguardian-secrets-detection/) | Repo | Beginner | [GitHub](https://github.com/GitGuardian/ggshield) |
-| 2 | [OWASP DevSecOps Guidelines](lesson-02-owasp-devsecops-guidelines/) | Whitepaper | Intermediate | [OWASP](https://owasp.org/www-project-devsecops-guideline/) |
-| 3 | [Snyk Learn - Security Education](lesson-03-snyk-learn-security-education/) | Lab | Beginner | [Snyk](https://learn.snyk.io/) |
-| 4 | [Trivy - Container Vulnerability Scanner](lesson-04-trivy-container-vulnerability-scanner/) | Repo | Beginner | [GitHub](https://github.com/aquasecurity/trivy) |
+| 2 | [Snyk Learn - Security Education](lesson-02-snyk-learn-security-education/) | Lab | Beginner | [Snyk](https://learn.snyk.io/) |
+| 3 | [Trivy - Container Vulnerability Scanner](lesson-03-trivy-container-vulnerability-scanner/) | Repo | Beginner | [GitHub](https://github.com/aquasecurity/trivy) |
+| 4 | [OWASP DevSecOps Guidelines](lesson-04-owasp-devsecops-guidelines/) | Whitepaper | Intermediate | [OWASP](https://owasp.org/www-project-devsecops-guideline/) |
 
 Each lesson is a self-contained guide (overview, prerequisites, key takeaways, and a
 step-by-step walkthrough). Open a lesson directory to read its `README.md`.

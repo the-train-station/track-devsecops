@@ -90,6 +90,20 @@ That conversation is often more valuable than simply reading the page end to end
 
 Once you begin using tools like Trivy, Checkov, or OWASP ZAP, return to the guideline and map each tool to the lifecycle stage it supports. This helps prevent tool sprawl and keeps your program tied to risk reduction instead of raw scan volume.
 
+## Deliverable
+
+Create an **OWASP DevSecOps lifecycle control map** for one application or sample pipeline. Use this structure:
+
+| Phase | Control | Owner | Evidence | Escalation |
+|-------|---------|-------|----------|------------|
+| Design | Lightweight threat model | Feature team | Threat model note | Security review if high-risk data or auth changes are involved |
+| Code | Secrets and SAST scan | Developer | Pull request check | Block merge on confirmed critical findings |
+| Build | Dependency, image, and IaC scan | CI owner | Scan artifact or SARIF upload | Release owner approves time-bound exceptions |
+| Deploy | Policy gate and environment review | Platform team | Deployment checklist | Stop deploy if required controls are missing |
+| Runtime | Logging, alerting, and incident response | On-call team | Alert, runbook, and incident note | Escalate confirmed exploit or active credential misuse immediately |
+
+Validation: compare the map against the guideline and confirm every phase has an owner, evidence artifact, and escalation path. The expected output is a control map that can become a team checklist or backlog seed, not just a summary of the OWASP page.
+
 ## Practice Notes
 
 - Convert reading into decisions. Pull out three recommendations, rate whether your current or sample workload follows them, and write the gap as an actionable backlog item.
