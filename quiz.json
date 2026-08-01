@@ -22,12 +22,30 @@
           "objective": "Sequence the response steps after a credential is found in source control",
           "prompt": "A live AWS access key was committed and pushed to a shared branch an hour ago. A teammate wants to start by purging the blob from git history. What should happen first?",
           "options": [
-            { "id": "a", "text": "Rewrite the branch history with git filter-repo so the blob disappears from the repo" },
-            { "id": "b", "text": "Revoke and rotate the credential at its issuing provider before touching git history" },
-            { "id": "c", "text": "Add the file to .gitignore and delete it in a follow-up commit on the branch" },
-            { "id": "d", "text": "Force-push a revert of the offending commit and tell the team to re-clone" }
+            {
+              "id": "a",
+              "text": "Rewrite the branch history with git filter-repo so the blob disappears from the repo"
+            },
+            {
+              "id": "b",
+              "text": "Revoke and rotate the credential at its issuing provider before touching git history"
+            },
+            {
+              "id": "c",
+              "text": "Add the file to .gitignore and delete it in a follow-up commit on the branch"
+            },
+            {
+              "id": "d",
+              "text": "Force-push a revert of the offending commit and tell the team to re-clone"
+            },
+            {
+              "id": "e",
+              "text": "Leave the credential active until the git history rewrite proves that no copy remains"
+            }
           ],
-          "answer": ["b"],
+          "answer": [
+            "b"
+          ],
           "explanation": "Rewriting history does not invalidate the credential: forks, existing clones, CI caches, and provider APIs may still hold the blob, so the key keeps working for an attacker. History cleanup is worth doing, but it is cleanup, not containment.",
           "source": "Lesson section: 'Step 5: Pair Detection with Response'"
         },
@@ -38,15 +56,34 @@
           "objective": "Compare pre-commit, pre-receive, and CI secret scanning trade-offs",
           "prompt": "A platform team wants secret scanning that an individual developer cannot bypass. Which statements about the scanning stages are accurate?",
           "options": [
-            { "id": "a", "text": "A pre-commit hook runs on the developer's machine and can be skipped with git commit --no-verify" },
-            { "id": "b", "text": "A pre-receive hook runs on the git server and can reject the push before the secret reaches the shared repo" },
-            { "id": "c", "text": "A CI job sees the secret only after it has already been pushed to the remote" },
-            { "id": "d", "text": "Pre-commit hooks are installed by the server and cannot be disabled on a workstation" },
-            { "id": "e", "text": "CI is the only stage able to inspect the full range of commits in a push" }
+            {
+              "id": "a",
+              "text": "A pre-commit hook runs on the developer's machine and can be skipped with git commit --no-verify"
+            },
+            {
+              "id": "b",
+              "text": "A pre-receive hook runs on the git server and can reject the push before the secret reaches the shared repo"
+            },
+            {
+              "id": "c",
+              "text": "A CI job sees the secret only after it has already been pushed to the remote"
+            },
+            {
+              "id": "d",
+              "text": "A GitGuardian pre-receive hook is impossible to bypass even when the server enables the documented breakglass push option"
+            },
+            {
+              "id": "e",
+              "text": "CI is the only stage able to inspect the full range of commits in a push"
+            }
           ],
-          "answer": ["a", "b", "c"],
-          "explanation": "Only the server-side pre-receive hook is genuinely unskippable, which is why it is the right control for a no-bypass requirement. Option e is the tempting miss: pre-receive also receives the old and new SHAs and can scan the whole pushed range.",
-          "source": "https://docs.gitguardian.com/ggshield-docs/reference/secret/scan/pre-receive"
+          "answer": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Pre-commit runs locally and can be skipped, pre-receive runs on the VCS server and can reject a push, and CI normally scans after content reaches the remote. A pre-receive control is stronger than a local hook, but it is not inherently unbypassable: GitGuardian documents an optional `-o breakglass` push option when the server enables it.",
+          "source": "https://docs.gitguardian.com/ggshield-docs/integrations/git-hooks/pre-receive"
         },
         {
           "id": "devsecops-gitguardian-secrets-detection-q3",
@@ -55,14 +92,32 @@
           "objective": "Explain why entropy-based and pattern-based detection produce different false-positive profiles",
           "prompt": "A scan flags a base64 test fixture and a UUID in a seed file, but misses an internal service token that looks like two ordinary words joined by a dash. What explains both results?",
           "options": [
-            { "id": "a", "text": "Pattern detectors match known provider prefixes, so they never flag encoded test data" },
-            { "id": "b", "text": "The detector set lacked a rule for that token format and skipped the file entirely" },
-            { "id": "c", "text": "High-entropy heuristics flag random-looking strings and miss low-entropy secrets" },
-            { "id": "d", "text": "Entropy scoring applies only to files already in git history, not to the working tree" }
+            {
+              "id": "a",
+              "text": "Pattern detectors match known provider prefixes, so they never flag encoded test data"
+            },
+            {
+              "id": "b",
+              "text": "The detector set lacked a rule for that token format and skipped the file entirely"
+            },
+            {
+              "id": "c",
+              "text": "High-entropy heuristics flag random-looking strings and miss low-entropy secrets"
+            },
+            {
+              "id": "d",
+              "text": "Entropy scoring applies only to files already in git history, not to the working tree"
+            },
+            {
+              "id": "e",
+              "text": "Entropy scoring applies only to provider-specific secrets whose prefix is already known"
+            }
           ],
-          "answer": ["c"],
+          "answer": [
+            "c"
+          ],
           "explanation": "Entropy heuristics trade precision for recall on unknown formats: anything random-looking scores high (false positives on fixtures and UUIDs) while a low-entropy homegrown token scores low. Option b describes the same miss but blames the wrong mechanism, since the file was scanned, just not matched.",
-          "source": "Lesson section: 'Key Takeaways'"
+          "source": "https://docs.gitguardian.com/secrets-detection/secrets-detection-engine/detectors/generics/generic_high_entropy_secret"
         },
         {
           "id": "devsecops-gitguardian-secrets-detection-q4",
@@ -71,28 +126,66 @@
           "objective": "Choose the ggshield scan subcommand that fits a given workflow stage",
           "prompt": "Your CI job should scan only the commits included in the push that triggered the pipeline run. Which ggshield invocation does that?",
           "options": [
-            { "id": "a", "text": "ggshield secret scan path ." },
-            { "id": "b", "text": "ggshield secret scan repo ." },
-            { "id": "c", "text": "ggshield secret scan pre-commit" },
-            { "id": "d", "text": "ggshield secret scan ci" }
+            {
+              "id": "a",
+              "text": "ggshield secret scan path ."
+            },
+            {
+              "id": "b",
+              "text": "ggshield secret scan repo ."
+            },
+            {
+              "id": "c",
+              "text": "ggshield secret scan pre-commit"
+            },
+            {
+              "id": "d",
+              "text": "ggshield secret scan ci"
+            },
+            {
+              "id": "e",
+              "text": "ggshield secret scan archive ."
+            }
           ],
-          "answer": ["d"],
+          "answer": [
+            "d"
+          ],
           "explanation": "The ci subcommand reads the CI environment variables to work out the pushed commit range and scans exactly that. Option b would work but rescans the entire history on every run, which is slow and floods the job with pre-existing findings.",
           "source": "https://docs.gitguardian.com/ggshield-docs/reference/secret/scan/ci"
         },
         {
           "id": "devsecops-gitguardian-secrets-detection-q5",
-          "type": "true_false",
+          "type": "multiple_choice",
           "difficulty": "advanced",
           "objective": "Sequence the response steps after a credential is found in source control",
-          "prompt": "Once a leaked credential has been rotated, removing it from git history is unnecessary because the old value no longer authenticates.",
+          "prompt": "A credential exposed in git history has been revoked and replaced. Which follow-up best completes the response?",
           "options": [
-            { "id": "a", "text": "True" },
-            { "id": "b", "text": "False" }
+            {
+              "id": "a",
+              "text": "Do nothing else because rotation guarantees that the committed value reveals no useful information"
+            },
+            {
+              "id": "b",
+              "text": "Delete the secret from the latest branch tip but leave history, caches, and artifacts unreviewed"
+            },
+            {
+              "id": "c",
+              "text": "Remove the secret from code and history where feasible, inspect copies in logs or artifacts, rescan, and document impact"
+            },
+            {
+              "id": "d",
+              "text": "Delete the entire repository so no incident record or audit evidence remains"
+            },
+            {
+              "id": "e",
+              "text": "Temporarily reactivate the old credential to test whether an attacker still has it"
+            }
           ],
-          "answer": ["b"],
-          "explanation": "Rotation removes the attacker's access, but the committed blob still leaks internal hostnames, account identifiers, and naming conventions, keeps re-triggering scanner findings, and misleads future audits. Both steps belong in the response path.",
-          "source": "Lesson section: 'Deliverable'"
+          "answer": [
+            "c"
+          ],
+          "explanation": "Revocation is the immediate containment step, but cleanup and impact analysis still matter because the value and surrounding metadata may remain in clones, history, CI logs, and artifacts. OWASP explicitly says a leaked credential is compromised and should be invalidated, while the lesson adds history cleanup, rescanning, and prevention.",
+          "source": "https://owasp.org/www-project-devsecops-guideline/latest/01a-Secrets-Management"
         }
       ]
     },
@@ -115,12 +208,30 @@
           "objective": "Choose between just-in-time and curriculum-style security learning for a given team problem",
           "prompt": "A dependency scan flags a prototype pollution CVE and the assigned developer does not understand the exploit path. How does this lesson say Snyk Learn should be used here?",
           "options": [
-            { "id": "a", "text": "Assign the complete OWASP Top 10 learning path before the fix is allowed to merge" },
-            { "id": "b", "text": "Defer the topic to the next quarterly security training cycle for the team" },
-            { "id": "c", "text": "Open the single lesson covering that vulnerability class while the finding is open" },
-            { "id": "d", "text": "Suppress the finding until a formal security curriculum has been completed" }
+            {
+              "id": "a",
+              "text": "Assign the complete OWASP Top 10 learning path before the fix is allowed to merge"
+            },
+            {
+              "id": "b",
+              "text": "Defer the topic to the next quarterly security training cycle for the team"
+            },
+            {
+              "id": "c",
+              "text": "Open the single lesson covering that vulnerability class while the finding is open"
+            },
+            {
+              "id": "d",
+              "text": "Suppress the finding until a formal security curriculum has been completed"
+            },
+            {
+              "id": "e",
+              "text": "Close the finding as accepted risk because training cannot change the vulnerable package"
+            }
           ],
-          "answer": ["c"],
+          "answer": [
+            "c"
+          ],
           "explanation": "The lesson's just-in-time model pairs a single module with a live finding, which is when retention is highest. Option a is the tempting one because a full path sounds more thorough, but it blocks the fix and separates the learning from the problem that motivated it.",
           "source": "Lesson section: 'Step 5: Use it as a just-in-time learning tool'"
         },
@@ -131,13 +242,32 @@
           "objective": "Assemble a finding-to-learning worksheet a developer can attach to a pull request",
           "prompt": "Which elements belong in the lesson's finding-to-learning remediation worksheet?",
           "options": [
-            { "id": "a", "text": "The affected package, endpoint, code path, or configuration" },
-            { "id": "b", "text": "A recomputed CVSS environmental score for this deployment" },
-            { "id": "c", "text": "A mapping to OWASP Top 10, CWE, or the closest lesson topic" },
-            { "id": "d", "text": "One checklist item, test idea, or backlog task preventing recurrence" },
-            { "id": "e", "text": "A signed security-team exception recorded before the fix merges" }
+            {
+              "id": "a",
+              "text": "The affected package, endpoint, code path, or configuration"
+            },
+            {
+              "id": "b",
+              "text": "A recomputed CVSS environmental score for this deployment"
+            },
+            {
+              "id": "c",
+              "text": "A mapping to OWASP Top 10, CWE, or the closest lesson topic"
+            },
+            {
+              "id": "d",
+              "text": "One checklist item, test idea, or backlog task preventing recurrence"
+            },
+            {
+              "id": "e",
+              "text": "A signed security-team exception recorded before the fix merges"
+            }
           ],
-          "answer": ["a", "c", "d"],
+          "answer": [
+            "a",
+            "c",
+            "d"
+          ],
           "explanation": "The worksheet has to answer what is wrong, why it matters, how to fix it, and how the team avoids repeating it, so it needs the finding details, the class mapping, and a prevention action. A recomputed CVSS score is real work but not part of this artifact, and an exception is only needed when the team decides not to fix.",
           "source": "Lesson section: 'Deliverable'"
         },
@@ -148,12 +278,30 @@
           "objective": "Explain why developer enablement is a required part of DevSecOps maturity",
           "prompt": "A team already runs Trivy, Semgrep, and Checkov in CI, yet the same injection bug class reappears every sprint. Which gap does this lesson point to?",
           "options": [
-            { "id": "a", "text": "The severity thresholds on the pipeline gate are too permissive for that class" },
-            { "id": "b", "text": "Findings are generated, but developers do not understand the class or the safe fix" },
-            { "id": "c", "text": "The three scanners should be consolidated into one platform to cut duplicate noise" },
-            { "id": "d", "text": "Runtime protection is required because static tooling cannot see injection bugs" }
+            {
+              "id": "a",
+              "text": "The severity thresholds on the pipeline gate are too permissive for that class"
+            },
+            {
+              "id": "b",
+              "text": "Findings are generated, but developers do not understand the class or the safe fix"
+            },
+            {
+              "id": "c",
+              "text": "The three scanners should be consolidated into one platform to cut duplicate noise"
+            },
+            {
+              "id": "d",
+              "text": "Runtime protection is required because static tooling cannot see injection bugs"
+            },
+            {
+              "id": "e",
+              "text": "The team has not uploaded its course-completion records to the compliance dashboard"
+            }
           ],
-          "answer": ["b"],
+          "answer": [
+            "b"
+          ],
           "explanation": "Recurrence after detection is an enablement problem, not a detection problem: the scanners are already flagging the class. Option a is plausible but a stricter gate would only block the same bugs later, without changing why developers keep writing them.",
           "source": "Lesson section: 'Overview'"
         },
@@ -164,28 +312,66 @@
           "objective": "Pair a lesson concept with the tool that turns it into a repeatable control",
           "prompt": "You have just finished a lesson on the risk of outdated container base images. Which follow-up does this lesson recommend to convert that knowledge into practice?",
           "options": [
-            { "id": "a", "text": "Run ZAP against the running container to confirm the packages are exploitable" },
-            { "id": "b", "text": "Write a Checkov policy so Terraform rejects the base image at plan time" },
-            { "id": "c", "text": "Scan the built image with Trivy and review the OS package findings" },
-            { "id": "d", "text": "Re-read the OWASP DevSecOps Guideline compliance auditing chapter" }
+            {
+              "id": "a",
+              "text": "Run ZAP against the running container to confirm the packages are exploitable"
+            },
+            {
+              "id": "b",
+              "text": "Write a Checkov policy so Terraform rejects the base image at plan time"
+            },
+            {
+              "id": "c",
+              "text": "Scan the built image with Trivy and review the OS package findings"
+            },
+            {
+              "id": "d",
+              "text": "Re-read the OWASP DevSecOps Guideline compliance auditing chapter"
+            },
+            {
+              "id": "e",
+              "text": "Generate an SBOM but do not inspect the built image or its installed packages"
+            }
           ],
-          "answer": ["c"],
+          "answer": [
+            "c"
+          ],
           "explanation": "The lesson's pairing step maps image and dependency risk to Trivy, which inspects the built artifact's OS packages directly. ZAP is the tempting alternative, but a DAST proxy only sees HTTP behaviour and cannot enumerate what packages are installed in the image.",
           "source": "Lesson section: 'Step 6: Pair education with implementation tools'"
         },
         {
           "id": "devsecops-snyk-learn-security-education-q5",
-          "type": "true_false",
+          "type": "multiple_choice",
           "difficulty": "advanced",
           "objective": "Explain why developer enablement is a required part of DevSecOps maturity",
-          "prompt": "Completing a security learning path is by itself sufficient evidence that a team has closed a DevSecOps enablement gap.",
+          "prompt": "Which evidence best shows that a team has closed a recurring secure-coding enablement gap?",
           "options": [
-            { "id": "a", "text": "True" },
-            { "id": "b", "text": "False" }
+            {
+              "id": "a",
+              "text": "Every developer opened the learning path at least once"
+            },
+            {
+              "id": "b",
+              "text": "The annual training dashboard reports a 100 percent completion rate"
+            },
+            {
+              "id": "c",
+              "text": "The security team increased the scanner severity without changing developer practice"
+            },
+            {
+              "id": "d",
+              "text": "Developers applied the fix pattern, added a regression check, and stopped reintroducing the weakness"
+            },
+            {
+              "id": "e",
+              "text": "The team archived the original findings without recording a prevention action"
+            }
           ],
-          "answer": ["b"],
-          "explanation": "The lesson treats completion as the halfway point: education becomes valuable only when it produces an applied change such as a review checklist item, a tool config, or a design default. Course completion alone measures attendance, not behaviour.",
-          "source": "Lesson section: 'Key Takeaways'"
+          "answer": [
+            "d"
+          ],
+          "explanation": "Training attendance measures exposure, not comprehension or changed behavior. Applied remediation, a repeatable prevention control, and reduced recurrence demonstrate that developers can transfer the lesson into delivery work.",
+          "source": "Lesson sections: 'Step 4: Capture one remediation pattern from each lesson' and 'Key Takeaways'"
         }
       ]
     },
@@ -208,12 +394,30 @@
           "objective": "Choose the correct Trivy subcommand and scanners for a given scan target",
           "prompt": "You need to check the Terraform in ./infra for security misconfigurations without building or pulling any image. Which command does that?",
           "options": [
-            { "id": "a", "text": "trivy config ./infra" },
-            { "id": "b", "text": "trivy fs ./infra" },
-            { "id": "c", "text": "trivy image --scanners misconfig ./infra" },
-            { "id": "d", "text": "trivy repo --scanners vuln ./infra" }
+            {
+              "id": "a",
+              "text": "trivy config ./infra"
+            },
+            {
+              "id": "b",
+              "text": "trivy fs ./infra"
+            },
+            {
+              "id": "c",
+              "text": "trivy image --scanners misconfig ./infra"
+            },
+            {
+              "id": "d",
+              "text": "trivy repo --scanners vuln ./infra"
+            },
+            {
+              "id": "e",
+              "text": "trivy kubernetes ./infra"
+            }
           ],
-          "answer": ["a"],
+          "answer": [
+            "a"
+          ],
           "explanation": "trivy config is the dedicated misconfiguration subcommand for IaC directories. Plain trivy fs is the tempting choice, but misconfiguration detection is not enabled by default in the image, fs, and repo subcommands; you would have to add --scanners misconfig.",
           "source": "https://trivy.dev/latest/docs/scanner/misconfiguration/"
         },
@@ -224,12 +428,30 @@
           "objective": "Configure Trivy to gate a CI build on severity and fix availability",
           "prompt": "The build should fail only when there are CRITICAL vulnerabilities that already have a fixed version available. Which invocation implements that gate?",
           "options": [
-            { "id": "a", "text": "trivy image --severity CRITICAL --exit-code 1 app:latest" },
-            { "id": "b", "text": "trivy image --severity CRITICAL --ignore-unfixed --exit-code 1 app:latest" },
-            { "id": "c", "text": "trivy image --severity CRITICAL --ignore-unfixed app:latest" },
-            { "id": "d", "text": "trivy image --severity CRITICAL --exit-code 0 --ignore-unfixed app:latest" }
+            {
+              "id": "a",
+              "text": "trivy image --severity CRITICAL --exit-code 1 app:latest"
+            },
+            {
+              "id": "b",
+              "text": "trivy image --severity CRITICAL --ignore-unfixed --exit-code 1 app:latest"
+            },
+            {
+              "id": "c",
+              "text": "trivy image --severity CRITICAL --ignore-unfixed app:latest"
+            },
+            {
+              "id": "d",
+              "text": "trivy image --severity CRITICAL --exit-code 0 --ignore-unfixed app:latest"
+            },
+            {
+              "id": "e",
+              "text": "trivy image --severity CRITICAL --format json app:latest"
+            }
           ],
-          "answer": ["b"],
+          "answer": [
+            "b"
+          ],
           "explanation": "--ignore-unfixed drops vulnerabilities with no available fix, and --exit-code 1 is what actually turns a finding into a failed job. Option c filters correctly but exits 0, so the pipeline reports findings and passes anyway.",
           "source": "https://trivy.dev/latest/docs/configuration/filtering/"
         },
@@ -240,13 +462,32 @@
           "objective": "Choose the correct Trivy subcommand and scanners for a given scan target",
           "prompt": "Which statements about Trivy's --scanners option are correct?",
           "options": [
-            { "id": "a", "text": "vuln and secret are the default scanners for trivy image" },
-            { "id": "b", "text": "Misconfiguration detection must be requested explicitly on image, fs, and repo" },
-            { "id": "c", "text": "license is a valid scanner value alongside vuln, misconfig, and secret" },
-            { "id": "d", "text": "--scanners sbom is how you produce a CycloneDX bill of materials" },
-            { "id": "e", "text": "Enabling the secret scanner requires a paid Aqua subscription" }
+            {
+              "id": "a",
+              "text": "vuln and secret are the default scanners for trivy image"
+            },
+            {
+              "id": "b",
+              "text": "Misconfiguration detection must be requested explicitly on image, fs, and repo"
+            },
+            {
+              "id": "c",
+              "text": "license is a valid scanner value alongside vuln, misconfig, and secret"
+            },
+            {
+              "id": "d",
+              "text": "--scanners sbom is how you produce a CycloneDX bill of materials"
+            },
+            {
+              "id": "e",
+              "text": "Enabling the secret scanner requires a paid Aqua subscription"
+            }
           ],
-          "answer": ["a", "b", "c"],
+          "answer": [
+            "a",
+            "b",
+            "c"
+          ],
           "explanation": "The four valid scanner values are vuln, misconfig, secret, and license, with vuln and secret on by default. SBOM output is not a scanner: it is a report format selected with --format cyclonedx or --format spdx-json.",
           "source": "https://trivy.dev/latest/docs/references/configuration/cli/trivy_image/"
         },
@@ -257,12 +498,30 @@
           "objective": "Select a Trivy output format that matches the downstream consumer",
           "prompt": "The team wants Trivy findings to land in GitHub's Security tab next to results from other scanners. Which --format value should the job emit?",
           "options": [
-            { "id": "a", "text": "json" },
-            { "id": "b", "text": "cyclonedx" },
-            { "id": "c", "text": "sarif" },
-            { "id": "d", "text": "template" }
+            {
+              "id": "a",
+              "text": "json"
+            },
+            {
+              "id": "b",
+              "text": "cyclonedx"
+            },
+            {
+              "id": "c",
+              "text": "sarif"
+            },
+            {
+              "id": "d",
+              "text": "template"
+            },
+            {
+              "id": "e",
+              "text": "cyclonedx-json"
+            }
           ],
-          "answer": ["c"],
+          "answer": [
+            "c"
+          ],
           "explanation": "SARIF is the interchange format GitHub code scanning ingests, which is why the track's shared workflow uploads a .sarif file. JSON is machine-readable but GitHub will not render it as code scanning alerts.",
           "source": "Lesson section: 'Step 5: Explore reporting and automation options'"
         },
@@ -273,12 +532,30 @@
           "objective": "Suppress a Trivy finding with .trivyignore and justify the exception",
           "prompt": "A CRITICAL CVE in your base image has no fixed version upstream yet, and a release cannot wait. What is the most defensible way to unblock the pipeline?",
           "options": [
-            { "id": "a", "text": "Remove the --severity CRITICAL filter from the job so the finding stops being reported" },
-            { "id": "b", "text": "Set --exit-code 0 on the scan step until the upstream maintainers ship a patch" },
-            { "id": "c", "text": "Add --ignore-unfixed permanently so vulnerabilities without fixes never block" },
-            { "id": "d", "text": "Add the CVE to .trivyignore with an exp: date, owner, and compensating control" }
+            {
+              "id": "a",
+              "text": "Remove the --severity CRITICAL filter from the job so the finding stops being reported"
+            },
+            {
+              "id": "b",
+              "text": "Set --exit-code 0 on the scan step until the upstream maintainers ship a patch"
+            },
+            {
+              "id": "c",
+              "text": "Add --ignore-unfixed permanently so vulnerabilities without fixes never block"
+            },
+            {
+              "id": "d",
+              "text": "Add the CVE to .trivyignore with an exp: date, owner, and compensating control"
+            },
+            {
+              "id": "e",
+              "text": "Keep rescanning the unchanged image tag until the finding disappears from the database"
+            }
           ],
-          "answer": ["d"],
+          "answer": [
+            "d"
+          ],
           "explanation": "A .trivyignore entry scoped to one CVE with an exp:YYYY-MM-DD expiry keeps the gate intact for everything else and forces the exception back into review. Option c is the tempting one because this specific CVE has no fix, but it silently drops every unfixed finding forever, including future ones on internet-facing components.",
           "source": "https://trivy.dev/latest/docs/configuration/filtering/"
         }
@@ -303,12 +580,30 @@
           "objective": "Diagnose which pipeline gate was missing when a finding class reaches production",
           "prompt": "A production incident traces back to a known CVE in a transitive npm dependency the team never imported directly. SAST and DAST both ran on every build and passed. Which control class was missing?",
           "options": [
-            { "id": "a", "text": "Software composition analysis resolving the full dependency tree" },
-            { "id": "b", "text": "Container image scanning of the runtime base layer packages" },
-            { "id": "c", "text": "Infrastructure-as-code policy checks ahead of the deploy step" },
-            { "id": "d", "text": "Interactive application security testing in the staging tier" }
+            {
+              "id": "a",
+              "text": "Software composition analysis resolving the full dependency tree"
+            },
+            {
+              "id": "b",
+              "text": "Container image scanning of the runtime base layer packages"
+            },
+            {
+              "id": "c",
+              "text": "Infrastructure-as-code policy checks ahead of the deploy step"
+            },
+            {
+              "id": "d",
+              "text": "Interactive application security testing in the staging tier"
+            },
+            {
+              "id": "e",
+              "text": "A secrets scan looking for credentials embedded in the npm lockfile"
+            }
           ],
-          "answer": ["a"],
+          "answer": [
+            "a"
+          ],
           "explanation": "Only SCA walks the lockfile and resolves indirect dependencies to known-vulnerable versions; SAST reasons about first-party source and DAST about runtime behaviour. Image scanning is the near miss: it would catch OS packages in the base layer, not a JavaScript package pulled in by another package.",
           "source": "https://owasp.org/www-project-devsecops-guideline/latest/"
         },
@@ -319,12 +614,30 @@
           "objective": "Diagnose which pipeline gate was missing when a finding class reaches production",
           "prompt": "A Terraform module created a production S3 bucket that was world-readable for two weeks. Application SAST, SCA, and container scanning all passed on every build. Which control would have caught this before deploy?",
           "options": [
-            { "id": "a", "text": "DAST run against the staging environment before promotion" },
-            { "id": "b", "text": "Secrets detection on the pull request that added the module" },
-            { "id": "c", "text": "Infrastructure-as-code policy scanning of the Terraform source" },
-            { "id": "d", "text": "SBOM generation and signature verification at release time" }
+            {
+              "id": "a",
+              "text": "DAST run against the staging environment before promotion"
+            },
+            {
+              "id": "b",
+              "text": "Secrets detection on the pull request that added the module"
+            },
+            {
+              "id": "c",
+              "text": "Infrastructure-as-code policy scanning of the Terraform source"
+            },
+            {
+              "id": "d",
+              "text": "SBOM generation and signature verification at release time"
+            },
+            {
+              "id": "e",
+              "text": "Software composition analysis of the Terraform provider lock file"
+            }
           ],
-          "answer": ["c"],
+          "answer": [
+            "c"
+          ],
           "explanation": "The defect exists only in the infrastructure definition, so it is invisible to every control that looks at application code, dependencies, or image contents. DAST is the tempting answer, but a web scanner pointed at the app never exercises the bucket's ACL.",
           "source": "Lesson section: 'Step 3: Build a control map by delivery phase'"
         },
@@ -335,13 +648,32 @@
           "objective": "Place a security control at the correct delivery lifecycle phase",
           "prompt": "In the lesson's lifecycle control map, which phase-and-control pairings are correct?",
           "options": [
-            { "id": "a", "text": "Design - lightweight threat model owned by the feature team" },
-            { "id": "b", "text": "Code - annual penetration test booked with an external assessor" },
-            { "id": "c", "text": "Build - dependency, image, and IaC scans producing a SARIF artifact" },
-            { "id": "d", "text": "Runtime - logging, alerting, and incident response owned by on-call" },
-            { "id": "e", "text": "Deploy - line-by-line security review of every changed source file" }
+            {
+              "id": "a",
+              "text": "Design - lightweight threat model owned by the feature team"
+            },
+            {
+              "id": "b",
+              "text": "Code - annual penetration test booked with an external assessor"
+            },
+            {
+              "id": "c",
+              "text": "Build - dependency, image, and IaC scans producing a SARIF artifact"
+            },
+            {
+              "id": "d",
+              "text": "Runtime - logging, alerting, and incident response owned by on-call"
+            },
+            {
+              "id": "e",
+              "text": "Deploy - line-by-line security review of every changed source file"
+            }
           ],
-          "answer": ["a", "c", "d"],
+          "answer": [
+            "a",
+            "c",
+            "d"
+          ],
           "explanation": "The map places fast, automated checks in code and build and reserves human judgement for design and runtime response. Options b and e are real activities but neither fits its phase: an annual pentest cannot gate individual commits, and manual review of every file cannot run at deploy cadence.",
           "source": "Lesson section: 'Deliverable'"
         },
@@ -352,30 +684,69 @@
           "objective": "Assign ownership, evidence, and escalation to each control in a lifecycle map",
           "prompt": "Your control map lists a build-time dependency scan with no named owner and no escalation path. What does the lesson identify as the practical consequence?",
           "options": [
-            { "id": "a", "text": "The scan silently stops running after the CI runner image is upgraded" },
-            { "id": "b", "text": "Compliance frameworks automatically classify the pipeline as non-conformant" },
-            { "id": "c", "text": "Findings get deduplicated incorrectly against the previous build's results" },
-            { "id": "d", "text": "Findings accumulate with nobody accountable for triage or remediation" }
+            {
+              "id": "a",
+              "text": "The scan silently stops running after the CI runner image is upgraded"
+            },
+            {
+              "id": "b",
+              "text": "Compliance frameworks automatically classify the pipeline as non-conformant"
+            },
+            {
+              "id": "c",
+              "text": "Findings get deduplicated incorrectly against the previous build's results"
+            },
+            {
+              "id": "d",
+              "text": "Findings accumulate with nobody accountable for triage or remediation"
+            },
+            {
+              "id": "e",
+              "text": "The scanner automatically suppresses every finding that lacks an owner field"
+            }
           ],
-          "answer": ["d"],
+          "answer": [
+            "d"
+          ],
           "explanation": "The guideline's point is that automation without ownership produces scan volume rather than risk reduction: the check runs, findings pile up, and no one is on the hook. The other options describe operational failures that ownership would not, by itself, cause or prevent.",
           "source": "Lesson section: 'Key Takeaways'"
         },
         {
           "id": "devsecops-owasp-devsecops-guidelines-q5",
-          "type": "true_false",
+          "type": "multiple_choice",
           "difficulty": "beginner",
           "objective": "Explain how the guideline treats tool choice and pipeline placement",
-          "prompt": "The OWASP DevSecOps Guideline prescribes one specific tool and one fixed pipeline position for each security activity.",
+          "prompt": "How should a team use the OWASP DevSecOps Guideline when choosing security tools and pipeline placement?",
           "options": [
-            { "id": "a", "text": "True" },
-            { "id": "b", "text": "False" }
+            {
+              "id": "a",
+              "text": "Adopt exactly one tool per activity at the single pipeline stage prescribed by OWASP"
+            },
+            {
+              "id": "b",
+              "text": "Select controls that fit the delivery lifecycle, place feedback as early as practical, and assign ownership and escalation"
+            },
+            {
+              "id": "c",
+              "text": "Replace all human review with scanners so every security decision is deterministic"
+            },
+            {
+              "id": "d",
+              "text": "Run every security activity only after production deployment to observe real behavior"
+            },
+            {
+              "id": "e",
+              "text": "Measure maturity by scanner count even when findings have no response owner"
+            }
           ],
-          "answer": ["b"],
-          "explanation": "The guideline states that you are free to select the tools and the exact location where you implement them; its goal is detecting issues as early as possible, not mandating a fixed toolchain. That flexibility is why the lesson has you build your own control map.",
+          "answer": [
+            "b"
+          ],
+          "explanation": "OWASP describes security activities and a secure-pipeline model, but teams choose tools and locations appropriate to their lifecycle. The practical requirement is early useful feedback plus ownership, evidence, and response—not a fixed vendor toolchain or scanner count.",
           "source": "https://owasp.org/www-project-devsecops-guideline/latest/"
         }
       ]
     }
-  ]
+  ],
+  "last_updated": "2026-07-31"
 }
